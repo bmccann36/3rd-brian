@@ -1,0 +1,27 @@
+{
+  "type": "commonjs",
+  "name": "delete-test-01",
+  "description": "delete-test-01-description",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "@types/node": "^24.3.0",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  },
+  "scripts": {
+    "build": "tsc && npm run bundle",
+    "bundle": "node esbuild.config.js",
+    "watch": "tsc -w",
+    "watch:bundle": "node esbuild.watch.js",
+    "sam:dev": "sam local start-api",
+    "sam:build": "sam build"
+  },
+  "dependencies": {
+    "@fastify/aws-lambda": "^6.1.1",
+    "@fastify/cors": "^11.1.0",
+    "aws-lambda-fastify": "^2.2.0",
+    "fastify": "^5.5.0"
+  }
+}
