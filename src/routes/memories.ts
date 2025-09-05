@@ -1,5 +1,6 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { Type, Static } from "@sinclair/typebox";
+import { embeddingService } from "../services/embedding.service";
 
 // Define TypeBox schemas
 const FilterSchema = Type.Object({
@@ -47,6 +48,13 @@ type Memory = Static<typeof MemorySchema>;
 type QueryResponse = Static<typeof QueryResponseSchema>;
 
 const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
+  // Log embedding service status
+  if (!embeddingService.isEnabled()) {
+    fastify.log.warn("Embedding service is not enabled. Set OPENAI_API_KEY to enable embeddings.");
+  } else {
+    fastify.log.info("Embedding service initialized successfully.");
+  }
+
   fastify.post(
     "/query",
     {
@@ -62,10 +70,21 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
     async (request, reply) => {
-
       const { queries } = request.body;
 
-      console.log(queries);
+      // Generate embeddings for queries using the service
+      const queriesWithEmbeddings = await embeddingService.generateQueryEmbeddings(queries);
+
+      // Log embedding results
+      console.log("Queries with embeddings:", queriesWithEmbeddings.map(q => ({
+        query: q.query,
+        hasEmbedding: !!(q as any).embedding,
+        embeddingDimensions: (q as any).embedding?.length,
+      })));
+
+      // TODO: Next step - use queriesWithEmbeddings to search vector store
+      // Each query now has an embedding array that can be used for similarity search
+
       // Mock memory data
       const allMockMemories: Memory[] = [
         {
