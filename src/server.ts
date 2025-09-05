@@ -12,12 +12,10 @@ async function start() {
   if (!isLambda && !isSAMLocal) {
     const app = buildApp();
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-    const host = process.env.HOST || "0.0.0.0";
+    const host = process.env.HOST || "127.0.0.1";
 
     try {
       await app.listen({ port, host });
-      console.log(`🚀 Server running at http://${host}:${port}`);
-      console.log(`📚 Documentation available at http://${host}:${port}/docs`);
     } catch (err) {
       app.log.error(err);
       process.exit(1);

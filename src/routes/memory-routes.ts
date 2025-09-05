@@ -51,8 +51,6 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   // Log embedding service status
   if (!embeddingService.isEnabled()) {
     fastify.log.warn("Embedding service is not enabled. Set OPENAI_API_KEY to enable embeddings.");
-  } else {
-    fastify.log.info("Embedding service initialized successfully.");
   }
 
   fastify.post(

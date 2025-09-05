@@ -2,10 +2,11 @@ import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
-import memoryRoutes from "./routes/memories";
+
 import path from "node:path";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
+import memoryRoutes from "./routes/memory-routes";
 
 export const buildApp = (): FastifyInstance => {
   const app = Fastify({
@@ -38,10 +39,9 @@ export const buildApp = (): FastifyInstance => {
 
   let staticAssetPath = "static";
   if (!process.env.LAMBDA_TASK_ROOT) {
-    staticAssetPath = "dist/static";
+    staticAssetPath = "node_modules/@fastify/swagger-ui/static";
   }
   const baseDir = path.resolve(staticAssetPath);
-  console.log(`configured baseDir: ${baseDir}`);
 
   app.register(fastifySwaggerUI, { baseDir });
 
