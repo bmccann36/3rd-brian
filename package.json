@@ -6,6 +6,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "esbuild": "^0.25.9",
@@ -18,11 +19,11 @@
   },
   "scripts": {
     "esbuild:watch": "node esbuild.config.mjs --watch",
-    "esbuild": "node esbuild.config.mjs",
-    "build:watch": "tsc -w",
-    "build": "tsc && npm run esbuild",
     "sam:dev": "sam local start-api",
+    "build:watch": "tsc -w",
     "node:dev": "nodemon --watch src --ext ts --exec ts-node src/handlers/lambda-handler.ts",
+    "esbuild": "node esbuild.config.mjs",
+    "build": "tsc && npm run esbuild",
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"*.{js,json,mjs}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"*.{js,json,mjs}\""
   },
@@ -35,6 +36,8 @@
     "@sinclair/typebox": "^0.34.41",
     "dotenv": "^17.2.2",
     "fastify": "^5.5.0",
-    "openai": "^5.19.1"
+    "openai": "^5.19.1",
+    "pg": "^8.16.3",
+    "pgvector": "^0.2.1"
   }
 }

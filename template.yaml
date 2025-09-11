@@ -15,14 +15,19 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Architectures:
-      - x86_64
+      - arm64
       MemorySize: 256
       Timeout: 100
       CodeUri: dist-bundle/
-#      Environment:
-#        Variables:
-#          # Make table name accessible as environment variable from function code during execution
-#          SAMPLE_TABLE: !Ref SampleTable
+      Environment:
+        Variables:
+          NODE_ENV: ''
+          PG_HOST: ''
+          PG_PORT: ''
+          PG_DB: ''
+          PG_USER: ''
+          PG_PASSWORD: ''
+          OPENAI_API_KEY: ''
       Events:
         ProxyApiGreedy:
           Type: Api

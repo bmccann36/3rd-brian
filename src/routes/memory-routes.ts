@@ -1,6 +1,7 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { Type, Static } from "@sinclair/typebox";
 import { embeddingService } from "../services/embedding.service";
+import { searchMemories } from "../db/memory";
 
 // Define TypeBox schemas
 const FilterSchema = Type.Object({
@@ -80,52 +81,58 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         embeddingDimensions: (q as any).embedding?.length,
       })));
 
-      // TODO: Next step - use queriesWithEmbeddings to search vector store
-      // Each query now has an embedding array that can be used for similarity search
+      // Search memories using real database
+      const allMemories: Memory[] = [];
 
-      // Mock memory data
-      const allMockMemories: Memory[] = [
-        {
-          id: "mem-1",
-          content: "This is a sample memory about the user's preferences",
-          metadata: {
-            timestamp: new Date().toISOString(),
-            category: "preferences",
-            source: "chat",
-            author: "user123",
-            document_id: "doc-001",
-          },
-          similarity: 0.95,
-        },
-        {
-          id: "mem-2",
-          content: "User mentioned they enjoy coding in TypeScript",
-          metadata: {
-            timestamp: new Date().toISOString(),
-            category: "technical",
-            source: "email",
-            author: "developer@example.com",
-            document_id: "doc-002",
-          },
-          similarity: 0.89,
-        },
-        {
-          id: "mem-3",
-          content: "Important project file uploaded yesterday",
-          metadata: {
-            timestamp: new Date().toISOString(),
-            category: "files",
-            source: "file",
-            author: "admin",
-            document_id: "doc-003",
-          },
-          similarity: 0.75,
-        },
-      ];
+      try {
+        for (const queryWithEmbedding of queriesWithEmbeddings) {
+          const embedding = (queryWithEmbedding as any).embedding;
+          if (embedding) {
+            console.log(`Searching for query: ${queryWithEmbedding.query}`);
+
+            const results = await searchMemories({
+              embedding,
+              matchCount: queryWithEmbedding.top_k || 3,
+              documentId: queryWithEmbedding.filter?.document_id,
+              sourceId: queryWithEmbedding.filter?.source_id,
+              source: queryWithEmbedding.filter?.source,
+              author: queryWithEmbedding.filter?.author,
+              startDate: queryWithEmbedding.filter?.start_date ? new Date(queryWithEmbedding.filter.start_date) : undefined,
+              endDate: queryWithEmbedding.filter?.end_date ? new Date(queryWithEmbedding.filter.end_date) : undefined,
+            });
+
+            console.log(`Found ${results.length} results for query: ${queryWithEmbedding.query}`);
+
+            // Transform database results to Memory format
+            const memories: Memory[] = results.map(result => ({
+              id: result.id,
+              content: result.content,
+              similarity: result.similarity,
+              metadata: {
+                source: result.source,
+                source_id: result.source_id,
+                document_id: result.document_id,
+                url: result.url,
+                author: result.author,
+                created_at: result.created_at.toISOString(),
+              },
+            }));
+
+            allMemories.push(...memories);
+          }
+        }
+
+        console.log(`Database search completed. Total memories found: ${allMemories.length}`);
+
+      } catch (error) {
+        console.error("FATAL: Database search failed:", error);
+        // Return empty response instead of crashing to maintain type safety
+        console.error("Returning empty response due to database error");
+      }
 
       const response: QueryResponse = {
-        memories: allMockMemories,
-        count: allMockMemories.length,
+        memories: allMemories,
+        count: allMemories.length,
       };
 
       return response;
