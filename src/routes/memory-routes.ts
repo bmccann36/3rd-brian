@@ -2,7 +2,6 @@ import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { Type, Static } from '@sinclair/typebox';
 import { embeddingService } from '../services/embedding.service';
 import { searchMemories } from '../db/memory';
-import { getConnection } from '../db/connection';
 
 // Define TypeBox schemas
 const FilterSchema = Type.Object({
@@ -82,8 +81,6 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       const allMemories: Memory[] = [];
 
       try {
-        const pool = await getConnection();
-
         const pendingQueries = queriesWithEmbeddings.map(
           async (queryWithEmbedding) => {
             const embedding = (queryWithEmbedding as any).embedding;
@@ -92,7 +89,6 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
             }
 
             return searchMemories({
-              pool,
               embedding,
               matchCount: queryWithEmbedding.top_k || 3,
               documentId: queryWithEmbedding.filter?.document_id,
