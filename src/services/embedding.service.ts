@@ -1,9 +1,9 @@
-import OpenAI from "openai";
+import OpenAI from 'openai';
 
 export class EmbeddingService {
   private openai: OpenAI | null;
   private isConfigured: boolean;
-  private model = "text-embedding-3-large";
+  private model = 'text-embedding-3-large';
 
   constructor() {
     this.isConfigured = !!process.env.OPENAI_API_KEY;
@@ -14,7 +14,7 @@ export class EmbeddingService {
       });
     } else {
       console.warn(
-        "OPENAI_API_KEY not configured - embeddings will be skipped",
+        'OPENAI_API_KEY not configured - embeddings will be skipped',
       );
       this.openai = null;
     }
@@ -41,7 +41,7 @@ export class EmbeddingService {
   async generateEmbeddings(texts: string[]): Promise<(number[] | null)[]> {
     if (!this.isConfigured || !this.openai) {
       console.debug(
-        "Embedding service not configured, returning null embeddings",
+        'Embedding service not configured, returning null embeddings',
       );
       return texts.map(() => null);
     }
@@ -70,7 +70,7 @@ export class EmbeddingService {
 
       return embeddings;
     } catch (error) {
-      console.error("Error generating embeddings batch:", error);
+      console.error('Error generating embeddings batch:', error);
       // Return array of nulls matching input length
       return texts.map(() => null);
     }

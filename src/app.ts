@@ -1,19 +1,19 @@
-import Fastify, { FastifyInstance } from "fastify";
-import cors from "@fastify/cors";
-import swagger from "@fastify/swagger";
-import fastifySwaggerUI from "@fastify/swagger-ui";
+import Fastify, { FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import fastifySwaggerUI from '@fastify/swagger-ui';
 
-import path from "node:path";
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { Type } from "@sinclair/typebox";
-import memoryRoutes from "./routes/memory-routes";
+import path from 'node:path';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { Type } from '@sinclair/typebox';
+import memoryRoutes from './routes/memory-routes';
 
 export const buildApp = (): FastifyInstance => {
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL || "info",
+      level: process.env.LOG_LEVEL || 'info',
     },
-  }).withTypeProvider<TypeBoxTypeProvider>()
+  }).withTypeProvider<TypeBoxTypeProvider>();
 
   app.register(cors, {
     origin: true,
@@ -24,22 +24,22 @@ export const buildApp = (): FastifyInstance => {
   app.register(swagger, {
     openapi: {
       info: {
-        title: "Items API",
-        description: "A simple CRUD API for managing items",
-        version: "1.0.0",
+        title: 'Items API',
+        description: 'A simple CRUD API for managing items',
+        version: '1.0.0',
       },
       servers: [
         {
-          url: "http://localhost:3000",
-          description: "Development server",
+          url: 'http://localhost:3000',
+          description: 'Development server',
         },
       ],
     },
   });
 
-  let staticAssetPath = "static";
+  let staticAssetPath = 'static';
   if (!process.env.LAMBDA_TASK_ROOT) {
-    staticAssetPath = "node_modules/@fastify/swagger-ui/static";
+    staticAssetPath = 'node_modules/@fastify/swagger-ui/static';
   }
   const baseDir = path.resolve(staticAssetPath);
 
@@ -47,37 +47,45 @@ export const buildApp = (): FastifyInstance => {
 
   app.register(memoryRoutes);
 
-  app.get("/health", {
-    schema: {
-      response: {
-        200: Type.Object({
-          status: Type.String(),
-          timestamp: Type.String(),
-        }),
+  app.get(
+    '/health',
+    {
+      schema: {
+        response: {
+          200: Type.Object({
+            status: Type.String(),
+            timestamp: Type.String(),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    return {
-      status: "healthy yo ho ho",
-      timestamp: new Date().toISOString(),
-    };
-  });
+    async (request, reply) => {
+      return {
+        status: 'healthy yo ho ho',
+        timestamp: new Date().toISOString(),
+      };
+    },
+  );
 
-  app.get("/", {
-    schema: {
-      response: {
-        200: Type.Object({
-          message: Type.String(),
-          version: Type.String(),
-        }),
+  app.get(
+    '/',
+    {
+      schema: {
+        response: {
+          200: Type.Object({
+            message: Type.String(),
+            version: Type.String(),
+          }),
+        },
       },
     },
-  }, async (request, reply) => {
-    return {
-      message: "Welcome to the API",
-      version: "1.0.0",
-    };
-  });
+    async (request, reply) => {
+      return {
+        message: 'Welcome to the API',
+        version: '1.0.0',
+      };
+    },
+  );
 
   return app;
 };

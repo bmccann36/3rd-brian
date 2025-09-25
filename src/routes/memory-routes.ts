@@ -1,8 +1,8 @@
-import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
-import { Type, Static } from "@sinclair/typebox";
-import { embeddingService } from "../services/embedding.service";
-import { searchMemories } from "../db/memory";
-import { getConnection } from "../db/connection";
+import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
+import { Type, Static } from '@sinclair/typebox';
+import { embeddingService } from '../services/embedding.service';
+import { searchMemories } from '../db/memory';
+import { getConnection } from '../db/connection';
 
 // Define TypeBox schemas
 const FilterSchema = Type.Object({
@@ -52,28 +52,31 @@ type QueryResponse = Static<typeof QueryResponseSchema>;
 const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   // Log embedding service status
   if (!embeddingService.isEnabled()) {
-    fastify.log.warn("Embedding service is not enabled. Set OPENAI_API_KEY to enable embeddings.");
+    fastify.log.warn(
+      'Embedding service is not enabled. Set OPENAI_API_KEY to enable embeddings.',
+    );
   }
 
   fastify.post(
-    "/query",
+    '/query',
     {
       schema: {
         body: QueryRequestSchema,
         response: {
           200: QueryResponseSchema,
         },
-        tags: ["memories"],
-        summary: "Query memories",
+        tags: ['memories'],
+        summary: 'Query memories',
         description:
-          "Search for relevant memories based on query strings with optional filtering",
+          'Search for relevant memories based on query strings with optional filtering',
       },
     },
     async (request, reply) => {
       const { queries } = request.body;
 
       // Generate embeddings for queries using the service
-      const queriesWithEmbeddings = await embeddingService.generateQueryEmbeddings(queries);
+      const queriesWithEmbeddings =
+        await embeddingService.generateQueryEmbeddings(queries);
 
       // Search memories using real database
       const allMemories: Memory[] = [];
@@ -81,24 +84,30 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       try {
         const pool = await getConnection();
 
-        const pendingQueries = queriesWithEmbeddings.map(async (queryWithEmbedding) => {
-          const embedding = (queryWithEmbedding as any).embedding;
-          if (!embedding) {
-            return [];
-          }
+        const pendingQueries = queriesWithEmbeddings.map(
+          async (queryWithEmbedding) => {
+            const embedding = (queryWithEmbedding as any).embedding;
+            if (!embedding) {
+              return [];
+            }
 
-          return searchMemories({
-            pool,
-            embedding,
-            matchCount: queryWithEmbedding.top_k || 3,
-            documentId: queryWithEmbedding.filter?.document_id,
-            sourceId: queryWithEmbedding.filter?.source_id,
-            source: queryWithEmbedding.filter?.source,
-            author: queryWithEmbedding.filter?.author,
-            startDate: queryWithEmbedding.filter?.start_date ? new Date(queryWithEmbedding.filter.start_date) : undefined,
-            endDate: queryWithEmbedding.filter?.end_date ? new Date(queryWithEmbedding.filter.end_date) : undefined,
-          });
-        });
+            return searchMemories({
+              pool,
+              embedding,
+              matchCount: queryWithEmbedding.top_k || 3,
+              documentId: queryWithEmbedding.filter?.document_id,
+              sourceId: queryWithEmbedding.filter?.source_id,
+              source: queryWithEmbedding.filter?.source,
+              author: queryWithEmbedding.filter?.author,
+              startDate: queryWithEmbedding.filter?.start_date
+                ? new Date(queryWithEmbedding.filter.start_date)
+                : undefined,
+              endDate: queryWithEmbedding.filter?.end_date
+                ? new Date(queryWithEmbedding.filter.end_date)
+                : undefined,
+            });
+          },
+        );
 
         const memoryGroups = await Promise.all(pendingQueries);
 
@@ -119,11 +128,10 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
           allMemories.push(...memories);
         }
-
       } catch (error) {
-        console.error("FATAL: Database search failed:", error);
+        console.error('FATAL: Database search failed:', error);
         // Return empty response instead of crashing to maintain type safety
-        console.error("Returning empty response due to database error");
+        console.error('Returning empty response due to database error');
       }
 
       const response: QueryResponse = {

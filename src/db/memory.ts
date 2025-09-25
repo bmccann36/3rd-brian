@@ -1,5 +1,5 @@
-import pgvector from "pgvector/pg";
-import { Pool } from "pg";
+import pgvector from 'pgvector/pg';
+import { Pool } from 'pg';
 
 interface MemorySearchParams {
   pool: Pool;
@@ -26,7 +26,6 @@ interface MemorySearchResult {
   similarity: number;
 }
 
-
 export async function searchMemories(
   params: MemorySearchParams,
 ): Promise<MemorySearchResult[]> {
@@ -34,10 +33,10 @@ export async function searchMemories(
     pool,
     embedding,
     matchCount = 3,
-    documentId = "%%",
-    sourceId = "%%",
-    source = "%%",
-    author = "%%",
+    documentId = '%%',
+    sourceId = '%%',
+    source = '%%',
+    author = '%%',
     startDate,
     endDate,
   } = params;
@@ -79,4 +78,3 @@ export async function searchMemories(
   const result = await pool.query<MemorySearchResult>(query, values);
   return result.rows;
 }
-
