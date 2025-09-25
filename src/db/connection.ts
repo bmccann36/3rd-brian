@@ -22,7 +22,6 @@ export async function getConnection(): Promise<Pool> {
 
     // Register pgvector types on each new connection
     pool.on('connect', async (client: PoolClient) => {
-      console.log('Database client connected, registering pgvector...');
       await pgvector.registerTypes(client);
     });
 
