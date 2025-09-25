@@ -2,6 +2,7 @@ import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { Type, Static } from "@sinclair/typebox";
 import { embeddingService } from "../services/embedding.service";
 import { searchMemories } from "../db/memory";
+import { getConnection } from "../db/connection";
 
 // Define TypeBox schemas
 const FilterSchema = Type.Object({
@@ -90,7 +91,9 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
           if (embedding) {
             console.log(`Searching for query: ${queryWithEmbedding.query}`);
 
+            const pool = await getConnection();
             const results = await searchMemories({
+              pool,
               embedding,
               matchCount: queryWithEmbedding.top_k || 3,
               documentId: queryWithEmbedding.filter?.document_id,

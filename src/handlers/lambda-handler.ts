@@ -1,8 +1,18 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
 import awsLambdaFastify from "@fastify/aws-lambda";
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Context,
+} from "aws-lambda";
 import { buildApp } from "../app";
+import { getConnection } from "../db/connection";
+import { Pool } from "pg";
 
+dotenv.config();
+
+let dbConnection: Pool | null = null;
+let fastifyApp: any = null;
 const app = buildApp();
 
 // Detect if we're running in Lambda or SAM Local
@@ -12,7 +22,20 @@ const isLambda = !!(
 const isSAMLocal = process.env.AWS_SAM_LOCAL === "true";
 
 // Export handler for Lambda
-export const handler = awsLambdaFastify(app);
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context,
+): Promise<APIGatewayProxyResult> => {
+  if (!dbConnection) {
+    dbConnection = await getConnection();
+  } else {
+    console.log("Reusing existing database connection");
+  }
+  if (!fastifyApp) {
+    fastifyApp = awsLambdaFastify(app);
+  }
+  return fastifyApp(event, context);
+};
 
 // Start local server if not in Lambda environment
 if (!isLambda && !isSAMLocal) {

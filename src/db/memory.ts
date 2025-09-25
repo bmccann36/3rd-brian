@@ -1,7 +1,8 @@
 import pgvector from "pgvector/pg";
-import { getConnection } from "./connection";
+import { Pool } from "pg";
 
 interface MemorySearchParams {
+  pool: Pool;
   embedding: number[];
   matchCount?: number;
   documentId?: string;
@@ -30,6 +31,7 @@ export async function searchMemories(
   params: MemorySearchParams,
 ): Promise<MemorySearchResult[]> {
   const {
+    pool,
     embedding,
     matchCount = 3,
     documentId = "%%",
@@ -74,7 +76,6 @@ export async function searchMemories(
     matchCount,
   ];
 
-  const pool = await getConnection();
   const result = await pool.query<MemorySearchResult>(query, values);
   return result.rows;
 }

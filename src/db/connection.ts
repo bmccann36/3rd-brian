@@ -1,21 +1,11 @@
 import { Pool, PoolClient } from "pg";
 import pgvector from "pgvector/pg";
-import * as dotenv from "dotenv";
-
-dotenv.config();
 
 let pool: Pool | null = null;
 
 export async function getConnection(): Promise<Pool> {
   if (!pool) {
     console.log("Creating new database pool for Lambda...");
-    console.log("Environment variables:", {
-      PG_HOST: process.env.PG_HOST ? "SET" : "MISSING",
-      PG_PORT: process.env.PG_PORT ? "SET" : "MISSING",
-      PG_DB: process.env.PG_DB ? "SET" : "MISSING",
-      PG_USER: process.env.PG_USER ? "SET" : "MISSING",
-      PG_PASSWORD: process.env.PG_PASSWORD ? "SET" : "MISSING",
-    });
 
     pool = new Pool({
       host: process.env.PG_HOST,
