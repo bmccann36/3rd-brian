@@ -13,7 +13,6 @@ export async function getConnection(): Promise<Pool> {
       database: process.env.PG_DB,
       user: process.env.PG_USER,
       password: process.env.PG_PASSWORD,
-      max: 1, // Lambda optimization - single connection
       idleTimeoutMillis: 60000, // Keep connection alive longer for container reuse
       connectionTimeoutMillis: 5000,
       ssl: process.env.PG_HOST?.includes("neon.tech")

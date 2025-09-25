@@ -7,13 +7,15 @@ export class EmbeddingService {
 
   constructor() {
     this.isConfigured = !!process.env.OPENAI_API_KEY;
-    
+
     if (this.isConfigured) {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
     } else {
-      console.warn("OPENAI_API_KEY not configured - embeddings will be skipped");
+      console.warn(
+        "OPENAI_API_KEY not configured - embeddings will be skipped",
+      );
       this.openai = null;
     }
   }
@@ -38,7 +40,9 @@ export class EmbeddingService {
    */
   async generateEmbeddings(texts: string[]): Promise<(number[] | null)[]> {
     if (!this.isConfigured || !this.openai) {
-      console.debug("Embedding service not configured, returning null embeddings");
+      console.debug(
+        "Embedding service not configured, returning null embeddings",
+      );
       return texts.map(() => null);
     }
 
@@ -46,8 +50,6 @@ export class EmbeddingService {
       return [];
     }
 
-    console.log(`Generating embeddings for ${texts.length} text(s) in a single batch`);
-    
     try {
       // OpenAI API accepts array of strings and returns embeddings in the same order
       const response = await this.openai.embeddings.create({
@@ -66,12 +68,9 @@ export class EmbeddingService {
         }
       });
 
-      const successCount = embeddings.filter(emb => emb !== null).length;
-      console.log(`Successfully generated ${successCount}/${texts.length} embeddings`);
-
       return embeddings;
     } catch (error) {
-      console.error('Error generating embeddings batch:', error);
+      console.error("Error generating embeddings batch:", error);
       // Return array of nulls matching input length
       return texts.map(() => null);
     }
@@ -81,9 +80,9 @@ export class EmbeddingService {
    * Generate embeddings for query objects, preserving the original query structure
    */
   async generateQueryEmbeddings<T extends { query: string }>(
-    queries: T[]
+    queries: T[],
   ): Promise<(T & { embedding?: number[] })[]> {
-    const queryTexts = queries.map(q => q.query);
+    const queryTexts = queries.map((q) => q.query);
     const embeddings = await this.generateEmbeddings(queryTexts);
 
     return queries.map((query, index) => {

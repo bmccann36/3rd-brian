@@ -9,7 +9,7 @@ import { buildApp } from "../app";
 import { getConnection } from "../db/connection";
 import { Pool } from "pg";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 let dbConnection: Pool | null = null;
 let fastifyApp: any = null;
