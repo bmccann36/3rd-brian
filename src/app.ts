@@ -6,6 +6,7 @@ import fastifySwaggerUI from '@fastify/swagger-ui';
 import path from 'node:path';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
+import type { SwaggerTransformObject } from '@fastify/swagger';
 import memoryRoutes from './routes/memory-routes';
 
 const PUBLIC_PATHS = new Set(['/', '/health', '/docs', '/docs/']);
@@ -42,6 +43,13 @@ export const buildApp = (): FastifyInstance => {
 
   // Register Swagger
   app.register(swagger, {
+    /* Override OpenAPI version to 3.1.0 — required by ChatGPT GPT Actions.
+       @fastify/swagger hardcodes 3.0.3 with no config option to change it. */
+    transformObject: ((documentObject) => {
+      const { openapiObject } = documentObject as { openapiObject: Record<string, unknown> };
+      openapiObject.openapi = '3.1.0';
+      return openapiObject;
+    }) satisfies SwaggerTransformObject,
     openapi: {
       info: {
         title: 'Second Brian API',
@@ -51,8 +59,8 @@ export const buildApp = (): FastifyInstance => {
       },
       servers: [
         {
-          url: 'http://localhost:3000',
-          description: 'Development server',
+          url: process.env.API_BASE_URL || 'http://localhost:3000',
+          description: process.env.API_BASE_URL ? 'Production' : 'Development server',
         },
       ],
       components: {
@@ -73,7 +81,7 @@ export const buildApp = (): FastifyInstance => {
   }
   const baseDir = path.resolve(staticAssetPath);
 
-  app.register(fastifySwaggerUI, { baseDir });
+  app.register(fastifySwaggerUI, { baseDir, routePrefix: '/docs' });
 
   app.register(memoryRoutes);
 

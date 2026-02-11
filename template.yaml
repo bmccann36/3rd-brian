@@ -21,14 +21,15 @@ Resources:
       CodeUri: dist-bundle/
       Environment:
         Variables:
-          NODE_ENV: ''
-          PG_HOST: ''
-          PG_PORT: ''
-          PG_DB: ''
-          PG_USER: ''
-          PG_PASSWORD: ''
-          OPENAI_API_KEY: ''
-          BEARER_TOKEN: ''
+          NODE_ENV: '{{resolve:ssm:/third-brian/NODE_ENV}}'
+          PG_HOST: '{{resolve:ssm:/third-brian/PG_HOST}}'
+          PG_PORT: '{{resolve:ssm:/third-brian/PG_PORT}}'
+          PG_DB: '{{resolve:ssm:/third-brian/PG_DB}}'
+          PG_USER: '{{resolve:ssm:/third-brian/PG_USER}}'
+          PG_PASSWORD: '{{resolve:ssm:/third-brian/PG_PASSWORD}}'
+          OPENAI_API_KEY: '{{resolve:ssm:/third-brian/OPENAI_API_KEY}}'
+          BEARER_TOKEN: '{{resolve:ssm:/third-brian/BEARER_TOKEN}}'
+          API_BASE_URL: '{{resolve:ssm:/third-brian/API_BASE_URL}}'
       Events:
         ProxyApiGreedy:
           Type: Api

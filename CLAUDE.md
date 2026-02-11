@@ -83,11 +83,15 @@ npx ts-node src/handlers/lambda-handler.ts
 ## AWS Deployment
 
 ```bash
-npm run build          # tsc + esbuild bundle
-sam deploy             # uses samconfig.toml defaults
+npm run build                          # tsc + esbuild bundle
+sam deploy --profile personal --region us-east-1 --no-confirm-changeset   # full deploy (template + code)
+echo "Y" | sam sync --stack-name third-brian --profile personal --region us-east-1 --code --no-watch  # code-only (fast, no CloudFormation)
 ```
 
-Uses `--profile localdev` for dev AWS resources.
+- Use `sam deploy` when the template changes (new env vars, IAM, etc.)
+- Use `sam sync --code` for code-only changes (pushes directly to Lambda, seconds vs minutes)
+- AWS profile `personal` is required. Always use `--profile personal` flag directly (not `awsume`, which only sets env vars in the user's shell and won't carry into Claude's shell)
+- Environment variables are stored in SSM Parameter Store under `/third-brian/*`
 
 ## Reference
 

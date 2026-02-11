@@ -13,20 +13,23 @@ Goal: Replace the Python `second-brain-python-backend` with this Node.js version
 - No chunking for now — inputs are short (chat snippets, personal notes)
 - Return list of document IDs
 
-### 1.2 Bearer Token Auth
+### 1.2 Bearer Token Auth ✅
 - Fastify `onRequest` hook checking `Authorization: Bearer <token>`
-- Token stored as env var (`BEARER_TOKEN`)
-- Apply to all routes except `/health` and `/docs`
+- Token stored in SSM Parameter Store (`/third-brian/BEARER_TOKEN`)
+- Public paths exempt: `/`, `/health`, `/docs/*`
 
-### 1.3 OpenAPI Schema for GPT
-- Generate/export an OpenAPI spec compatible with ChatGPT GPT actions
-- Should cover `/upsert` and `/query` operations
-- Match the schema format the "Second Brian" GPT currently expects
+### 1.3 OpenAPI Schema for GPT ✅
+- Auto-generated from TypeBox schemas, served live at `/docs/json`
+- OpenAPI 3.1.0 (overridden via `transformObject` — library hardcodes 3.0.3)
+- HTTPBearer security scheme, operationIds, dynamic server URL
+- GPT successfully imports and uses the spec
 
-### 1.4 Deploy & Switch Over
-- Deploy updated `third-brian` stack
-- Update the ChatGPT GPT action URL + schema to point here
-- Verify upsert + query works end-to-end through the GPT
+### 1.4 Deploy & Switch Over (partial)
+- ✅ Deployed `third-brian` stack with SSM-backed env vars
+- ✅ ChatGPT GPT action URL + schema pointed here
+- ✅ `/query` works end-to-end through the GPT
+- ⬜ Need `/upsert` before full switchover (GPT can read but not save)
+- ⬜ ChatGPT sends empty strings for optional filter fields — needs `preValidation` strip or schema fix
 
 ## Phase 2: Polish
 

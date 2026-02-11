@@ -60,6 +60,7 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     '/query',
     {
       schema: {
+        operationId: 'queryMemories',
         body: QueryRequestSchema,
         response: {
           200: QueryResponseSchema,
@@ -67,7 +68,7 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         tags: ['memories'],
         summary: 'Query memories',
         description:
-          'Search for relevant memories based on query strings with optional filtering',
+          'Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don\'t do this often. Split queries if ResponseTooLargeError occurs.',
       },
     },
     async (request, reply) => {

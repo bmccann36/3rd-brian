@@ -4,6 +4,34 @@ Work log tracking what was done each session. Most recent first.
 
 ---
 
+## 2026-02-11 — Auth, OpenAPI Spec, SSM Config & GPT Connection
+
+**Context:** ~1 hour session before work. Goal was to get closer to replacing the Python backend.
+
+**What happened:**
+- Added bearer token authentication (Fastify `onRequest` hook)
+  - Public paths exempt: `/`, `/health`, `/docs/*`
+  - Token stored in `BEARER_TOKEN` env var
+- Moved all Lambda env vars to SSM Parameter Store (`/third-brian/*`)
+  - Nuked and recreated the SAM stack + managed S3 bucket (old one was deleted in S3 cleanup)
+- Fixed Swagger UI: set `routePrefix: '/docs'`, served at `/docs/` with JSON spec at `/docs/json`
+- OpenAPI spec fixes for ChatGPT GPT Actions compatibility:
+  - Overrode version to 3.1.0 (library hardcodes 3.0.3) via `transformObject`
+  - Added `operationId` to `/query` route
+  - Dynamic server URL via `API_BASE_URL` env var
+  - Added `HTTPBearer` security scheme
+- Updated Swagger metadata: "Items API" → "Second Brian API"
+- Updated `@fastify/swagger` and `@fastify/swagger-ui` to latest
+- Added `.aws-sam/` to `.gitignore`
+- Created `docs/scripts.md` for npm script documentation
+- Successfully connected the "Second Brian" ChatGPT GPT to this backend!
+
+**Known issue:** ChatGPT sends empty strings for optional filter fields (e.g., `"start_date": ""`), which fails Fastify's `date-time` format validation. Needs a `preValidation` strip or schema update — deferred to next session.
+
+**Status:** Auth + OpenAPI + deploy done (Phase 1.2, 1.3, 1.4 partially complete). Still need `/upsert` (1.1) and the empty-string fix before the GPT can fully replace the Python backend.
+
+---
+
 ## 2026-02-10 — Project Inventory & Documentation
 
 **Context:** Picked the project back up after ~5 months away. Needed to figure out where things stood.
