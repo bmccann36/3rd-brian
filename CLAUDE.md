@@ -95,3 +95,4 @@ Uses `--profile localdev` for dev AWS resources.
 - See [docs/decisions.md](docs/decisions.md) for architectural decisions
 - See [docs/roadmap.md](docs/roadmap.md) for detailed feature roadmap
 - See [docs/changelog.md](docs/changelog.md) for session-by-session work log
+- See [docs/scripts.md](docs/scripts.md) for npm script documentation
