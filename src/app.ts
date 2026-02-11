@@ -8,6 +8,8 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
 import memoryRoutes from './routes/memory-routes';
 
+const PUBLIC_PATHS = new Set(['/', '/health', '/docs', '/docs/']);
+
 export const buildApp = (): FastifyInstance => {
   const app = Fastify({
     logger: {
@@ -20,12 +22,31 @@ export const buildApp = (): FastifyInstance => {
     // credentials: true,
   });
 
+  app.addHook('onRequest', async (request, reply) => {
+    if (
+      PUBLIC_PATHS.has(request.url) ||
+      request.url.startsWith('/docs/')
+    ) {
+      return;
+    }
+
+    const authHeader = request.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
+
+    if (!token || token !== process.env.BEARER_TOKEN) {
+      reply.code(401).send({ error: 'Invalid or missing token' });
+    }
+  });
+
   // Register Swagger
   app.register(swagger, {
     openapi: {
       info: {
-        title: 'Items API',
-        description: 'A simple CRUD API for managing items',
+        title: 'Second Brian API',
+        description:
+          'A retrieval API for querying and filtering documents based on natural language queries and metadata',
         version: '1.0.0',
       },
       servers: [
@@ -34,6 +55,15 @@ export const buildApp = (): FastifyInstance => {
           description: 'Development server',
         },
       ],
+      components: {
+        securitySchemes: {
+          HTTPBearer: {
+            type: 'http',
+            scheme: 'bearer',
+          },
+        },
+      },
+      security: [{ HTTPBearer: [] }],
     },
   });
 

@@ -28,6 +28,7 @@ Resources:
           PG_USER: ''
           PG_PASSWORD: ''
           OPENAI_API_KEY: ''
+          BEARER_TOKEN: ''
       Events:
         ProxyApiGreedy:
           Type: Api
