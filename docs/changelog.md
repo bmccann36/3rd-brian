@@ -4,6 +4,25 @@ Work log tracking what was done each session. Most recent first.
 
 ---
 
+## 2026-02-12 — Empty String Fix & Custom GPT Docs
+
+**Context:** Quick morning session. Goal was to fix the ChatGPT empty string validation issue from last session.
+
+**What happened:**
+- Fixed ChatGPT empty string validation issue in filter fields
+  - All filter fields now accept `""` via `Type.Union([..., Type.Literal('')])` at the schema level
+  - Empty strings coerced to `undefined` with `|| undefined` in the handler before reaching the DB
+  - Kept `format: 'date-time'` validation on date fields (the union approach allows both valid dates and empty strings)
+- Added descriptions to all filter schema fields (flow into OpenAPI spec, help ChatGPT understand the fields)
+- Created `docs/custom-gpt.md` — documents GPT Action setup, auth config, spec import workflow, and known ChatGPT behaviors
+- Updated CLAUDE.md: marked auth/OpenAPI/GPT connection as done, added custom-gpt.md reference
+- Updated roadmap: marked empty string handling as complete
+- Deployed to production and verified — ChatGPT queries returning 200s
+
+**Status:** Empty string blocker resolved. Only `/upsert` remains for Phase 1 completion.
+
+---
+
 ## 2026-02-11 — Auth, OpenAPI Spec, SSM Config & GPT Connection
 
 **Context:** ~1 hour session before work. Goal was to get closer to replacing the Python backend.

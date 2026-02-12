@@ -4,19 +4,58 @@ import { embeddingService } from '../services/embedding.service';
 import { searchMemories } from '../db/memory';
 
 // Define TypeBox schemas
+const EmptyString = Type.Literal('');
+
 const FilterSchema = Type.Object({
-  document_id: Type.Optional(Type.String()),
-  source: Type.Optional(
+  document_id: Type.Optional(
     Type.Union([
-      Type.Literal('email'),
-      Type.Literal('file'),
-      Type.Literal('chat'),
+      Type.String({ description: 'Filter by document ID' }),
+      EmptyString,
     ]),
   ),
-  source_id: Type.Optional(Type.String()),
-  author: Type.Optional(Type.String()),
-  start_date: Type.Optional(Type.String({ format: 'date-time' })),
-  end_date: Type.Optional(Type.String({ format: 'date-time' })),
+  source: Type.Optional(
+    Type.Union(
+      [
+        Type.Literal('email'),
+        Type.Literal('file'),
+        Type.Literal('chat'),
+        EmptyString,
+      ],
+      { description: 'Filter by source type' },
+    ),
+  ),
+  source_id: Type.Optional(
+    Type.Union([
+      Type.String({ description: 'Filter by source ID' }),
+      EmptyString,
+    ]),
+  ),
+  author: Type.Optional(
+    Type.Union([
+      Type.String({ description: 'Filter by author name' }),
+      EmptyString,
+    ]),
+  ),
+  start_date: Type.Optional(
+    Type.Union([
+      Type.String({
+        format: 'date-time',
+        description:
+          'ISO 8601 datetime. Only return memories created after this date.',
+      }),
+      EmptyString,
+    ]),
+  ),
+  end_date: Type.Optional(
+    Type.Union([
+      Type.String({
+        format: 'date-time',
+        description:
+          'ISO 8601 datetime. Only return memories created before this date.',
+      }),
+      EmptyString,
+    ]),
+  ),
 });
 
 const QuerySchema = Type.Object({
@@ -68,7 +107,7 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         tags: ['memories'],
         summary: 'Query memories',
         description:
-          'Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don\'t do this often. Split queries if ResponseTooLargeError occurs.',
+          "Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.",
       },
     },
     async (request, reply) => {
@@ -89,19 +128,18 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
               return [];
             }
 
+            const filter = queryWithEmbedding.filter;
             return searchMemories({
               embedding,
               matchCount: queryWithEmbedding.top_k || 3,
-              documentId: queryWithEmbedding.filter?.document_id,
-              sourceId: queryWithEmbedding.filter?.source_id,
-              source: queryWithEmbedding.filter?.source,
-              author: queryWithEmbedding.filter?.author,
-              startDate: queryWithEmbedding.filter?.start_date
-                ? new Date(queryWithEmbedding.filter.start_date)
+              documentId: filter?.document_id || undefined,
+              sourceId: filter?.source_id || undefined,
+              source: filter?.source || undefined,
+              author: filter?.author || undefined,
+              startDate: filter?.start_date
+                ? new Date(filter.start_date)
                 : undefined,
-              endDate: queryWithEmbedding.filter?.end_date
-                ? new Date(queryWithEmbedding.filter.end_date)
-                : undefined,
+              endDate: filter?.end_date ? new Date(filter.end_date) : undefined,
             });
           },
         );

@@ -29,7 +29,7 @@ Goal: Replace the Python `second-brain-python-backend` with this Node.js version
 - ✅ ChatGPT GPT action URL + schema pointed here
 - ✅ `/query` works end-to-end through the GPT
 - ⬜ Need `/upsert` before full switchover (GPT can read but not save)
-- ⬜ ChatGPT sends empty strings for optional filter fields — needs `preValidation` strip or schema fix
+- ✅ ChatGPT empty string handling — filter fields accept `""` via union types, coerced to `undefined` in handler
 
 ## Phase 2: Polish
 

@@ -14,7 +14,7 @@ This is the **third iteration** of the same idea:
 2. `second-brian-node` (Apr 2025) — First Node.js attempt
 3. `third-brian` (Aug 2025) — Current. Clean rewrite in TypeScript/Fastify
 
-The Python version is still the one connected to the "Second Brian" GPT action at `https://5syy7xbxtj.execute-api.us-east-1.amazonaws.com/Prod`. This project aims to replace it.
+The Python version has been replaced — the "Second Brian" GPT now points at this backend. See [docs/custom-gpt.md](docs/custom-gpt.md) for GPT configuration details.
 
 ## Tech Stack
 
@@ -37,12 +37,12 @@ The Python version is still the one connected to the "Second Brian" GPT action a
 - [x] Lambda handler with connection reuse
 - [x] SAM template + esbuild bundling
 - [x] Deployed to AWS as `third-brian` stack
+- [x] Bearer token authentication (SSM-backed)
+- [x] OpenAPI 3.1.0 schema compatible with ChatGPT GPT actions
+- [x] "Second Brian" GPT connected to this backend
 
 ### Not Done — Phase 1 (MVP to replace Python backend)
 - [ ] `POST /upsert` — embed and store documents (no chunking needed for now)
-- [ ] Bearer token authentication (Fastify hook)
-- [ ] OpenAPI schema compatible with ChatGPT GPT actions
-- [ ] Deploy and switch the "Second Brian" GPT to this backend
 
 ### Not Done — Phase 2+ (see docs/roadmap.md)
 - [ ] `DELETE /delete`
@@ -100,3 +100,4 @@ echo "Y" | sam sync --stack-name third-brian --profile personal --region us-east
 - See [docs/roadmap.md](docs/roadmap.md) for detailed feature roadmap
 - See [docs/changelog.md](docs/changelog.md) for session-by-session work log
 - See [docs/scripts.md](docs/scripts.md) for npm script documentation
+- See [docs/custom-gpt.md](docs/custom-gpt.md) for ChatGPT GPT configuration
