@@ -1,10 +1,16 @@
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import { Type, Static } from '@sinclair/typebox';
 import { embeddingService } from '../services/embedding.service';
-import { searchMemories } from '../db/memory';
+import { searchMemories, upsertMemories } from '../db/memory';
 
 // Define TypeBox schemas
 const EmptyString = Type.Literal('');
+const SourceType = Type.Union([
+  Type.Literal('email'),
+  Type.Literal('file'),
+  Type.Literal('chat'),
+  EmptyString,
+]);
 
 const FilterSchema = Type.Object({
   document_id: Type.Optional(
@@ -13,17 +19,7 @@ const FilterSchema = Type.Object({
       EmptyString,
     ]),
   ),
-  source: Type.Optional(
-    Type.Union(
-      [
-        Type.Literal('email'),
-        Type.Literal('file'),
-        Type.Literal('chat'),
-        EmptyString,
-      ],
-      { description: 'Filter by source type' },
-    ),
-  ),
+  source: Type.Optional(SourceType),
   source_id: Type.Optional(
     Type.Union([
       Type.String({ description: 'Filter by source ID' }),
@@ -80,12 +76,58 @@ const QueryResponseSchema = Type.Object({
   count: Type.Number(),
 });
 
+const DocumentMetadataSchema = Type.Object({
+  source: Type.Optional(SourceType),
+  source_id: Type.Optional(
+    Type.Union([Type.String({ description: 'Source ID' }), EmptyString]),
+  ),
+  url: Type.Optional(
+    Type.Union([
+      Type.String({ description: 'URL associated with the document' }),
+      EmptyString,
+    ]),
+  ),
+  created_at: Type.Optional(
+    Type.Union([
+      Type.String({
+        format: 'date-time',
+        description: 'ISO 8601 datetime when the document was created',
+      }),
+      EmptyString,
+    ]),
+  ),
+  author: Type.Optional(
+    Type.Union([Type.String({ description: 'Author name' }), EmptyString]),
+  ),
+});
+
+const DocumentSchema = Type.Object({
+  id: Type.Optional(
+    Type.Union([
+      Type.String({ description: 'Unique document ID. Auto-generated if not provided.' }),
+      EmptyString,
+    ]),
+  ),
+  text: Type.String({ description: 'The text content of the document' }),
+  metadata: Type.Optional(DocumentMetadataSchema),
+});
+
+const UpsertRequestSchema = Type.Object({
+  documents: Type.Array(DocumentSchema, { minItems: 1 }),
+});
+
+const UpsertResponseSchema = Type.Object({
+  ids: Type.Array(Type.String()),
+});
+
 // Type inference
 type Filter = Static<typeof FilterSchema>;
 type Query = Static<typeof QuerySchema>;
 type QueryRequest = Static<typeof QueryRequestSchema>;
 type Memory = Static<typeof MemorySchema>;
 type QueryResponse = Static<typeof QueryResponseSchema>;
+type UpsertRequest = Static<typeof UpsertRequestSchema>;
+type UpsertResponse = Static<typeof UpsertResponseSchema>;
 
 const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
   // Log embedding service status
@@ -175,6 +217,53 @@ const memoryRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       };
 
       return response;
+    },
+  );
+
+  fastify.post(
+    '/upsert',
+    {
+      schema: {
+        operationId: 'upsertMemories',
+        body: UpsertRequestSchema,
+        response: {
+          200: UpsertResponseSchema,
+        },
+        tags: ['memories'],
+        summary: 'Upsert memories',
+        description:
+          "Save chat information. Accepts an array of documents with text (potential questions + conversation text), metadata (source 'chat' and timestamp, no ID as this will be generated). Confirm with the user before saving, ask for more details/context.",
+      },
+    },
+    async (request) => {
+      const { documents } = request.body;
+
+      const embeddings = await embeddingService.generateEmbeddings(
+        documents.map((d) => d.text),
+      );
+
+      const upsertParams = documents.map((doc, index) => {
+        const embedding = embeddings[index];
+        if (!embedding) {
+          throw new Error(`Failed to generate embedding for document at index ${index}`);
+        }
+
+        const meta = doc.metadata;
+        return {
+          id: doc.id || undefined,
+          content: doc.text,
+          embedding,
+          source: meta?.source || undefined,
+          sourceId: meta?.source_id || undefined,
+          url: meta?.url || undefined,
+          author: meta?.author || undefined,
+          createdAt: meta?.created_at ? new Date(meta.created_at) : undefined,
+        };
+      });
+
+      const ids = await upsertMemories(upsertParams);
+
+      return { ids };
     },
   );
 };

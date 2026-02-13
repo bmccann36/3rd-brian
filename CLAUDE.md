@@ -40,9 +40,7 @@ The Python version has been replaced — the "Second Brian" GPT now points at th
 - [x] Bearer token authentication (SSM-backed)
 - [x] OpenAPI 3.1.0 schema compatible with ChatGPT GPT actions
 - [x] "Second Brian" GPT connected to this backend
-
-### Not Done — Phase 1 (MVP to replace Python backend)
-- [ ] `POST /upsert` — embed and store documents (no chunking needed for now)
+- [x] `POST /upsert` — embed and store documents (batch, with ON CONFLICT upsert)
 
 ### Not Done — Phase 2+ (see docs/roadmap.md)
 - [ ] `DELETE /delete`
@@ -63,10 +61,10 @@ src/
 ├── handlers/
 │   └── lambda-handler.ts       # Lambda entry + local dev server
 ├── routes/
-│   └── memory-routes.ts        # POST /query
+│   └── memory-routes.ts        # POST /query, POST /upsert
 ├── db/
 │   ├── connection.ts           # Pg pool with pgvector registration
-│   └── memory.ts               # searchMemories() vector similarity query
+│   └── memory.ts               # searchMemories() + upsertMemories()
 └── services/
     └── embedding.service.ts    # OpenAI embedding generation
 ```

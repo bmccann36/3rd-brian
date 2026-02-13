@@ -4,14 +4,15 @@ Goal: Replace the Python `second-brain-python-backend` with this Node.js version
 
 ## Phase 1: MVP — Get the GPT Working on This Backend
 
-### 1.1 POST /upsert
+### 1.1 POST /upsert ✅
 - Accept array of documents: `{ id?, text, metadata? }`
 - Generate embedding for each document's text
 - Store in pgvector with metadata (source, author, created_at, etc.)
 - Auto-generate document ID (UUID) if not provided
-- If document ID already exists, replace it
-- No chunking for now — inputs are short (chat snippets, personal notes)
+- If document ID already exists, replace it (ON CONFLICT DO UPDATE)
+- No chunking — inputs are short (chat snippets, personal notes)
 - Return list of document IDs
+- Empty string handling via union types (same pattern as /query)
 
 ### 1.2 Bearer Token Auth ✅
 - Fastify `onRequest` hook checking `Authorization: Bearer <token>`
@@ -28,7 +29,7 @@ Goal: Replace the Python `second-brain-python-backend` with this Node.js version
 - ✅ Deployed `third-brian` stack with SSM-backed env vars
 - ✅ ChatGPT GPT action URL + schema pointed here
 - ✅ `/query` works end-to-end through the GPT
-- ⬜ Need `/upsert` before full switchover (GPT can read but not save)
+- ✅ `/upsert` implemented — GPT can now both read and save memories
 - ✅ ChatGPT empty string handling — filter fields accept `""` via union types, coerced to `undefined` in handler
 
 ## Phase 2: Polish

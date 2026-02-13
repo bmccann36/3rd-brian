@@ -4,6 +4,27 @@ Work log tracking what was done each session. Most recent first.
 
 ---
 
+## 2026-02-12 (evening) — POST /upsert Implementation
+
+**Context:** Phase 1 completion. The last blocker for full GPT switchover — the GPT could read memories but not save new ones.
+
+**What happened:**
+- Implemented `POST /upsert` endpoint in `src/routes/memory-routes.ts`
+  - TypeBox schemas: `DocumentMetadataSchema`, `DocumentSchema`, `UpsertRequestSchema`, `UpsertResponseSchema`
+  - Same `EmptyString` union pattern on all optional fields (ChatGPT sends `""` for omitted fields)
+  - Handler: extracts documents, generates embeddings in batch, maps to DB params, returns IDs
+  - OpenAPI metadata with description guiding the GPT to confirm before saving
+- Added `upsertMemories()` to `src/db/memory.ts`
+  - Batch insert with parameterized `VALUES` clauses
+  - `ON CONFLICT (id) DO UPDATE SET ...` for idempotent upserts
+  - Auto-generates UUID via `crypto.randomUUID()` when ID not provided
+  - Uses `pgvector.toSql()` for embedding column (same as search)
+- Updated CLAUDE.md, roadmap, and changelog
+
+**Status:** Phase 1 complete. All endpoints needed for GPT parity are implemented. Ready to deploy and re-import OpenAPI spec in ChatGPT.
+
+---
+
 ## 2026-02-12 — Empty String Fix & Custom GPT Docs
 
 **Context:** Quick morning session. Goal was to fix the ChatGPT empty string validation issue from last session.
