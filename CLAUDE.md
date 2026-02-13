@@ -10,9 +10,9 @@ A Node.js/TypeScript rewrite of the [chatgpt-retrieval-plugin](https://github.co
 
 This is the **third iteration** of the same idea:
 
-1. `second-brain-python-backend` (Apr 2025) — Python, deployed, currently wired up to the ChatGPT GPT
-2. `second-brian-node` (Apr 2025) — First Node.js attempt
-3. `third-brian` (Aug 2025) — Current. Clean rewrite in TypeScript/Fastify
+1. `second-brain-python-backend` (Apr 2025) — Python, retired
+2. `second-brian-node` (Apr 2025) — First Node.js attempt, abandoned
+3. `third-brian` (Aug 2025) — Current. TypeScript/Fastify, in production
 
 The Python version has been replaced — the "Second Brian" GPT now points at this backend. See [docs/custom-gpt.md](docs/custom-gpt.md) for GPT configuration details.
 
@@ -28,29 +28,11 @@ The Python version has been replaced — the "Second Brian" GPT now points at th
 
 ## Current Status
 
-### Done
-- [x] Fastify app scaffolding with TypeBox + Swagger
-- [x] OpenAI embedding service (singleton, batch support)
-- [x] Postgres/pgvector connection pooling (Lambda-friendly)
-- [x] `POST /query` — semantic search with metadata filtering
-- [x] `GET /health` and `GET /` — basic health/info endpoints
-- [x] Lambda handler with connection reuse
-- [x] SAM template + esbuild bundling
-- [x] Deployed to AWS as `third-brian` stack
-- [x] Bearer token authentication (SSM-backed)
-- [x] OpenAPI 3.1.0 schema compatible with ChatGPT GPT actions
-- [x] "Second Brian" GPT connected to this backend
-- [x] `POST /upsert` — embed and store documents (batch, with ON CONFLICT upsert)
+**v0 (Python replacement) is complete.** The "Second Brian" GPT reads and writes memories through this backend in production.
 
-### Not Done — Phase 2+ (see docs/roadmap.md)
-- [ ] `DELETE /delete`
-- [ ] Database schema documentation
-- [ ] Tear down old stacks
-- [ ] Text chunking (when needed for longer content like medical docs)
-- [ ] File upload endpoint
-- [ ] MCP server interface (cross-platform memory: ChatGPT + Claude)
+Endpoints: `POST /query`, `POST /upsert`, `GET /health`, `GET /`
 
-See [docs/roadmap.md](docs/roadmap.md) for detailed breakdown.
+**v1 (Structured Memory System)** — see [docs/roadmap.md](docs/roadmap.md) for what's next: category field, delete endpoint, cleanup.
 
 ## Project Structure
 

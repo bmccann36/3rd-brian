@@ -1,67 +1,42 @@
 # Roadmap
 
-Goal: Replace the Python `second-brain-python-backend` with this Node.js version so the ChatGPT "Second Brian" GPT can be switched over. Keep it simple — this is a personal memory store for life logistics and family/medical notes, not a general-purpose retrieval system.
+## v0: Replace Python Backend — COMPLETE
 
-## Phase 1: MVP — Get the GPT Working on This Backend
+Replaced the Python `second-brain-python-backend` with this Node.js/TypeScript version. The "Second Brian" ChatGPT GPT now points at this backend for both reading and writing memories.
 
-### 1.1 POST /upsert ✅
-- Accept array of documents: `{ id?, text, metadata? }`
-- Generate embedding for each document's text
-- Store in pgvector with metadata (source, author, created_at, etc.)
-- Auto-generate document ID (UUID) if not provided
-- If document ID already exists, replace it (ON CONFLICT DO UPDATE)
-- No chunking — inputs are short (chat snippets, personal notes)
-- Return list of document IDs
-- Empty string handling via union types (same pattern as /query)
+**What shipped:**
+- `POST /query` — semantic search with metadata filtering
+- `POST /upsert` — batch embed + store with ON CONFLICT upsert
+- Bearer token auth (SSM-backed)
+- OpenAPI 3.1.0 spec compatible with ChatGPT GPT actions
+- ChatGPT empty string handling
+- Deployed to AWS Lambda via SAM
 
-### 1.2 Bearer Token Auth ✅
-- Fastify `onRequest` hook checking `Authorization: Bearer <token>`
-- Token stored in SSM Parameter Store (`/third-brian/BEARER_TOKEN`)
-- Public paths exempt: `/`, `/health`, `/docs/*`
+---
 
-### 1.3 OpenAPI Schema for GPT ✅
-- Auto-generated from TypeBox schemas, served live at `/docs/json`
-- OpenAPI 3.1.0 (overridden via `transformObject` — library hardcodes 3.0.3)
-- HTTPBearer security scheme, operationIds, dynamic server URL
-- GPT successfully imports and uses the spec
+## v1: Next Up
 
-### 1.4 Deploy & Switch Over (partial)
-- ✅ Deployed `third-brian` stack with SSM-backed env vars
-- ✅ ChatGPT GPT action URL + schema pointed here
-- ✅ `/query` works end-to-end through the GPT
-- ✅ `/upsert` implemented — GPT can now both read and save memories
-- ✅ ChatGPT empty string handling — filter fields accept `""` via union types, coerced to `undefined` in handler
+### Category field
+- Add `category` column to `documents` table (text, defaults to `OTHER`)
+- Values: `HOME`, `DRIVE`, `SYSTEM`, `EXPERIMENT`, `LIFE`, `OTHER`
+- Wire through upsert (write) and query (filter)
+- Enables mode-based filtering and future aggregation
+- See `plan-category-field.md` for full implementation plan
 
-## Phase 2: Polish
+### Text chunking
+- Split long documents into ~200-token chunks at sentence boundaries
+- Chunk IDs: `{document_id}_0`, `{document_id}_1`, etc.
+- Short texts (chat snippets) pass through unchanged
+- Enables storing longer content like receipts, medical docs, insurance paperwork
+- Python plugin has reference implementation in `services/chunks.py`
 
-### 2.1 DELETE /delete
-- Accept: `{ ids?, filter?, delete_all? }`
-- Must provide at least one
-- Delete by document IDs, metadata filter, or wipe all
-- Return success boolean
+---
 
-### 2.2 Database Schema Documentation
-- Document the `documents` table schema (columns, indexes, types)
-- Include the SQL to create it from scratch
+## Future Ideas (no timeline)
 
-### 2.3 Cleanup Old Infrastructure
-- Tear down old AWS stacks: `second-brain-python-backend`, `second-brian-node`
-- Remove `src/server.ts` (redundant with lambda-handler.ts)
-
-## Phase 3: Future Ideas
-
-### Text Chunking
-- Add chunking if/when longer content gets stored (e.g., medical documents)
-- Only build this when there's an actual need
-
-### File Upload (POST /upsert-file)
-- PDF/DOCX text extraction → embed → store
-- Useful for medical docs, insurance paperwork, etc.
-- Would need chunking (Phase 3 dependency)
-
-### MCP Server Interface
-- Expose this as an MCP server so Claude Code / Claude Desktop can use it
-- Would make this a cross-platform memory layer (ChatGPT + Claude)
-
-### Claude Skill / Plugin
-- Package as a Claude Code skill for direct integration
+- **DELETE /delete** — Delete by IDs, filter, or wipe all
+- **Tags** — Freeform `text[]` column, backfilled via offline LLM extraction job
+- **File upload** (`POST /upsert-file`) — PDF/DOCX extraction → embed → store
+- **Google Drive indexing** — Mirror metadata for receipts and docs
+- **MCP server interface** — Cross-platform memory layer (ChatGPT + Claude)
+- **Cleanup** — Tear down old stacks, remove `src/server.ts`
